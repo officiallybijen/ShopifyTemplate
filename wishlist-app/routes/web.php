@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\SettingController;
+use App\Models\Setting;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,7 +17,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('dashboard');
+    $shop=Auth::user();
+    $settings=Setting::where('shop_id',$shop->name)->first();
+    return view('dashboard',compact('settings'));
 })->middleware(['verify.shopify'])->name('home');    
 
 
@@ -22,5 +27,5 @@ Route::group(['middleware' => 'verify.shopify'], function() {
     Route::view('/products', 'products');
     Route::view('/dashboard', 'dashboard');
     Route::view('/customers', 'customers');
-    Route::view('/settings', 'settings');
+    Route::get('/settings', [SettingController::class,'configureTheme']);
 });
