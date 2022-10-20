@@ -12,7 +12,7 @@ const mix = require('laravel-mix');
  */
 
 mix.js('resources/js/app.js', 'public/js')
-    .js('resources/js/mywishlist-app.js', 'public/js')
+    .js('resources/js/mywishlist-app.js', 'public/js/mywishlist-app.js')
     .postCss('resources/css/app.css', 'public/css', [
         //
     ]);

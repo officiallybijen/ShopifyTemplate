@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class WishlistController extends Controller
 {
@@ -14,7 +15,44 @@ class WishlistController extends Controller
      */
     public function index()
     {
-        //
+        $shop = Auth::user();
+
+        $shopWishlist = Wishlist::where('shop_id', $shop->name)->orderBy('updated_at', 'desc')->get();
+
+        $lists = [];
+
+        foreach ($shopWishlist as $item) {
+            array_push($lists, "gid://shopify/Product/{$item->product_id}");
+        }
+
+        $mylist = json_encode($lists);
+
+        $query = "
+        {
+            nodes(ids:$mylist){
+                ... on Product{
+                    id
+                    title
+                    handle
+                    featuredImage{
+                      originalSrc
+                    }
+                    totalInventory
+                    vendor
+                    onlineStorePreviewUrl
+                    priceRange{
+                      maxVariantPrice{
+                        currencyCode
+                        amount
+                      }
+                    }
+                  }
+            }
+          }
+        ";
+
+        $products = $shop->api()->graph($query);
+        return view('vendor.shopify-app.partials.wishlist-table', compact('products'));
     }
 
     /**
@@ -35,6 +73,7 @@ class WishlistController extends Controller
      */
     public function store(Request $request)
     {
+        Wishlist::updateOrCreate($request->all());
         return "success";
     }
 
@@ -78,8 +117,21 @@ class WishlistController extends Controller
      * @param  \App\Models\Wishlist  $wishlist
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Wishlist $wishlist)
+    public function destroy(Request $request)
     {
-        //
+        $item = Wishlist::where('shop_id', $request['shop_id'])->where('customer_id', $request['customer_id'])->where('product_id', $request['product_id'])->first();
+
+        return Wishlist::destroy($item->id);
+    }
+
+    public function check(Request $request)
+    {
+        $item = Wishlist::where('shop_id', $request['shop_id'])->where('customer_id', $request['customer_id'])->where('product_id', $request['product_id'])->first();
+
+        if ($item) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 }

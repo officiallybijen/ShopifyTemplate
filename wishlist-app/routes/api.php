@@ -21,3 +21,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::post('addToWishlist',[WishlistController::class,'store']);
+Route::post('removeWishlist',[WishlistController::class,'destroy']);
+Route::post('checkWishlist',[WishlistController::class,'check']);
